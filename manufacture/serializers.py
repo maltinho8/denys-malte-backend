@@ -6,4 +6,4 @@ from manufacture.models import Manufacture
 class ManufactureSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manufacture
-        fields = ("id", "name", "country", "created_at")
+        fields = ("id", "name", "country", "car_type", "created_at")
