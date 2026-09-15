@@ -6,4 +6,4 @@
 
 ![Django REST structure](django-rest-structure.jpg)
 
-# Test
+# Test 2
