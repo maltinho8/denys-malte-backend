@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import DetailView, ListView
-
+from rest_framework.exceptions import ValidationError
 from rest_framework import generics
 from rest_framework.decorators import api_view
 from rest_framework.mixins import ListModelMixin
@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Manufacture
+from .models import CarTypeChoices, Manufacture, ProductionStatusChoices
 from .serializers import ManufactureSerializer
 
 
@@ -98,3 +98,30 @@ class ManufactureGenericListAPIView(
 class ManufactureViewSet(ModelViewSet):
     queryset = Manufacture.objects.all()
     serializer_class = ManufactureSerializer
+
+    def get_queryset(self):
+        # Initial queryset: Das gesamte Manufacture-Objekt wird abgerufen, bevor Filter angewendet werden.
+        queryset = Manufacture.objects.all()
+
+        # Hier bilde ich die erlaubten Werte für die Filterung ab.
+        allowed_production_status_values = ProductionStatusChoices.values
+        allowed_car_type_values = CarTypeChoices.values
+
+        # Parameter aus den Query-Parametern abrufen
+        # Das bedeutet, dass wir die Filterung nur anwenden, wenn entsprechende Query-Parameter vorhanden sind.
+        production_status = self.request.query_params.get("production_status")
+        car_type = self.request.query_params.get("car_type")
+
+
+        # Falls ein Filterparameter vorhanden ist, wende die Filterung an.
+        # Filterung basierend auf den Query-Parametern anwenden
+        # Bei Fehlern in den Filterparametern wird eine ValidationError ausgelöst.
+        if production_status:
+            if production_status not in allowed_production_status_values:
+                raise ValidationError("Invalid production status value.")
+            queryset = queryset.filter(production_status=production_status)
+        if car_type:
+            if car_type not in allowed_car_type_values:
+                raise ValidationError("Invalid car type value.")
+            queryset = queryset.filter(car_type=car_type)
+        return queryset
